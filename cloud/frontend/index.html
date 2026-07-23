@@ -1,0 +1,101 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Asia Bulk Sacks - Tally Suite</title>
+  <link rel="icon" type="image/png" href="/assets/logo.png">
+  <link rel="stylesheet" href="/css/style.css?v=20260722-push-buffer">
+</head>
+<body class="no-chrome">
+  <div class="shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <img src="/assets/logo.png" alt="Asia Bulk Sacks" class="sidebar-logo">
+        <span class="sidebar-title">Tally Suite</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="/" data-link>
+          <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+          Dashboard
+        </a>
+        <a href="/vouchers" data-link>
+          <svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-8 14H7v-2h4v2zm6-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+          Vouchers
+        </a>
+        <a href="/history" data-link>
+          <svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.9 3.9L9 12H6a7 7 0 1 1 7 7v2a9 9 0 0 0 0-18zm-1 5v5l4.25 2.52.77-1.28-3.52-2.09V8H12z"/></svg>
+          History
+        </a>
+        <a href="/admin" data-link data-admin-only hidden>
+          <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 3-1.34 3-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+          Admin
+        </a>
+      </nav>
+
+      <div class="sidebar-tools">
+        <div class="sidebar-section-label">Connector</div>
+        <div class="conn-status" id="conn-status">
+          <span class="conn-dot offline" id="conn-dot"></span>
+          <span id="conn-text" class="muted">Connector: checking...</span>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <span id="user-email" class="muted"></span>
+        </div>
+        <button id="logout-btn" class="sidebar-btn">
+          <svg viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5-5-5zM4 5h8V3H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8v-2H4V5z"/></svg>
+          Log out
+        </button>
+      </div>
+    </aside>
+
+    <div class="content">
+      <header class="pagebar" id="pagebar">
+        <button id="sb-toggle" class="btn btn-ghost sb-toggle" aria-label="Menu">
+          <svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/></svg>
+        </button>
+        <h1 class="page-title" id="page-title">Dashboard</h1>
+        <div class="pagebar-right">
+          <button id="pb-upload" class="btn btn-sm btn-primary pb-upload" title="Upload an invoice">
+            <svg viewBox="0 0 24 24" width="16" height="16"><path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z"/></svg>
+            Upload invoice
+          </button>
+          <button id="pb-pair" class="btn btn-sm pb-pair" title="Pair a desktop connector">
+            <svg viewBox="0 0 24 24" width="16" height="16"><path d="M17 7h-4v2h4c1.65 0 3 1.35 3 3s-1.35 3-3 3h-4v2h4c2.76 0 5-2.24 5-5s-2.24-5-5-5zm-6 8H7c-1.65 0-3-1.35-3-3s1.35-3 3-3h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-2zm-3-4h8v2H8v-2z"/></svg>
+            Pairing code
+          </button>
+          <button id="pb-connector" class="icon-btn" title="Desktop connector" aria-label="Desktop connector">
+            <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+          </button>
+          <div class="company-picker" id="company-picker">
+            <button id="company-btn" class="btn company-btn">
+              <span id="company-label">Select company</span>
+              <svg viewBox="0 0 24 24" width="16" height="16"><path d="M7 10l5 5 5-5H7z"/></svg>
+            </button>
+            <div class="company-menu" id="company-menu" hidden></div>
+          </div>
+        </div>
+      </header>
+
+      <main id="main"></main>
+    </div>
+  </div>
+
+  <div id="modal-root"></div>
+  <div id="toast-stack" class="toast-stack"></div>
+
+  <script src="/js/api.js?v=20260722-push-buffer"></script>
+  <script src="/js/shell.js?v=20260722-push-buffer"></script>
+  <script src="/js/auth.js?v=20260722-push-buffer"></script>
+  <script src="/js/masters-modal.js?v=20260722-push-buffer"></script>
+  <script src="/js/upload.js?v=20260722-push-buffer"></script>
+  <script src="/js/vouchers.js?v=20260722-push-buffer"></script>
+  <script src="/js/history.js?v=20260722-push-buffer"></script>
+  <script src="/js/admin.js?v=20260722-push-buffer"></script>
+  <script src="/js/router.js?v=20260722-push-buffer"></script>
+</body>
+</html>

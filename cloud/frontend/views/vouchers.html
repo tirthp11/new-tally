@@ -1,0 +1,18 @@
+<div class="grid-toolbar">
+  <button class="chip active" data-chip="">All open</button>
+  <button class="chip" data-chip="draft">Draft</button>
+  <button class="chip" data-chip="failed">Failed</button>
+  <button class="chip" data-chip="queued">Queued</button>
+  <input id="vg-search" class="vg-search" placeholder="Search date, invoice, party, GSTIN, particulars, narration">
+  <span class="spacer"></span>
+  <button class="btn btn-danger" id="vg-delete-selected" disabled>Delete selected</button>
+  <label class="vg-selall"><input type="checkbox" id="vg-all"> Select all</label>
+  <span id="vg-count" class="muted"></span>
+  <button class="btn btn-primary" id="vg-push-selected" disabled>Push selected</button>
+</div>
+
+<div id="vg-body" class="vlines">
+  <div class="empty" id="vg-loading">
+    <span class="spinner"></span> Loading vouchers...
+  </div>
+</div>

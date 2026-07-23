@@ -1,0 +1,31 @@
+<div class="stats">
+  <a class="stat accent" data-link href="/vouchers"><div class="num" id="stat-drafts">-</div><div class="lbl">Vouchers to resolve</div></a>
+  <a class="stat" data-link href="/vouchers?status=failed"><div class="num" id="stat-failed">-</div><div class="lbl">Failed pushes</div></a>
+  <a class="stat" data-link href="/history" id="stat-month-link"><div class="num" id="stat-pushed-month">-</div><div class="lbl">Pushed this month</div></a>
+  <a class="stat" data-link href="/history"><div class="num" id="stat-pushed-total">-</div><div class="lbl">Total pushed to Tally</div></a>
+</div>
+
+<div class="card mt">
+  <h2>Working company</h2>
+  <p id="dash-company" class="muted">Loading...</p>
+  <p id="dash-connector" class="muted" style="margin-bottom:0"></p>
+</div>
+
+<div class="card">
+  <h2>Quick actions</h2>
+  <div class="row">
+    <button class="btn btn-primary" id="dash-upload">Upload an invoice</button>
+    <a href="/vouchers" data-link class="btn">Open vouchers</a>
+    <a href="/history" data-link class="btn">View history</a>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Recent activity</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Status</th><th>Party</th><th>Invoice No</th><th>Date</th><th class="right">Amount</th></tr></thead>
+      <tbody id="dash-recent"><tr><td colspan="5" class="muted">Loading...</td></tr></tbody>
+    </table>
+  </div>
+</div>

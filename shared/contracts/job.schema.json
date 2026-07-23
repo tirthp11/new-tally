@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Connector job and result",
+  "$defs": {
+    "job": {
+      "type": "object",
+      "required": ["type", "job_id", "action", "payload"],
+      "properties": {
+        "type": { "const": "job" },
+        "job_id": { "type": "string" },
+        "action": { "enum": ["list_companies", "fetch_masters", "post_tally_xml"] },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "company": { "type": "string" },
+            "label": { "type": "string" },
+            "xml": { "type": "string" }
+          }
+        }
+      }
+    },
+    "job_result": {
+      "type": "object",
+      "required": ["type", "job_id", "ok"],
+      "properties": {
+        "type": { "const": "job_result" },
+        "job_id": { "type": "string" },
+        "ok": { "type": "boolean" },
+        "data": { "type": "object" },
+        "error": { "type": "string" }
+      }
+    }
+  },
+  "oneOf": [{ "$ref": "#/$defs/job" }, { "$ref": "#/$defs/job_result" }]
+}

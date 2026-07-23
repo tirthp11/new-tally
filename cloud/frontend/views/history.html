@@ -1,0 +1,26 @@
+<div class="grid-toolbar">
+  <input id="hist-search" placeholder="Search party or invoice number" style="max-width:280px">
+  <select id="hist-year" class="hist-year" aria-label="Filter by year pushed"></select>
+  <select id="hist-month" class="hist-month" aria-label="Filter by month pushed"></select>
+  <span class="spacer"></span>
+  <span id="hist-count" class="muted"></span>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Party</th>
+        <th>Invoice No</th>
+        <th>Date</th>
+        <th class="right">Amount</th>
+        <th>Pushed at</th>
+        <th>Tally voucher</th>
+        <th class="right"><button class="btn btn-danger btn-sm" id="hist-clear-all" disabled>Clear all</button></th>
+      </tr>
+    </thead>
+    <tbody id="hist-body">
+      <tr><td colspan="7"><div class="empty"><span class="spinner"></span> Loading...</div></td></tr>
+    </tbody>
+  </table>
+</div>

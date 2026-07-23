@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+.env
+*.env
+!.env.example
+.venv/
+venv/
+dist/
+build/
+!connector/build/
+*.spec.bak
+.pytest_cache/
+.mypy_cache/
+tally_logs/
+*.log

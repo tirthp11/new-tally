@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Extracted invoice JSON (shape produced by EXTRACT_PROMPT, stored exactly as returned)",
+  "type": "object",
+  "properties": {
+    "voucher_type": { "type": "string" },
+    "voucher_number": { "type": "string" },
+    "date": { "type": "string", "description": "YYYYMMDD" },
+    "party_name": { "type": "string" },
+    "party_gstin": { "type": "string" },
+    "party_pan": { "type": "string" },
+    "party_state": { "type": "string" },
+    "party_state_code": { "type": "string" },
+    "party_address": { "type": "string" },
+    "party_pincode": { "type": "string" },
+    "party_country": { "type": "string" },
+    "party_registration_type": { "type": "string" },
+    "taxable_value": { "type": "number" },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "stock_item_name": { "type": "string" },
+          "hsn_sac": { "type": "string" },
+          "quantity": { "type": "number" },
+          "unit": { "type": "string" },
+          "rate": { "type": "number" },
+          "amount": { "type": "number" },
+          "purchase_ledger": { "type": "string" }
+        }
+      }
+    },
+    "additional_charges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "ledger_name": { "type": "string" },
+          "amount": { "type": "number" }
+        }
+      }
+    },
+    "gst": {
+      "type": "object",
+      "properties": {
+        "cgst_ledger": { "type": "string" },
+        "cgst_rate": { "type": "number" },
+        "cgst_amount": { "type": "number" },
+        "sgst_ledger": { "type": "string" },
+        "sgst_rate": { "type": "number" },
+        "sgst_amount": { "type": "number" },
+        "igst_ledger": { "type": "string" },
+        "igst_rate": { "type": "number" },
+        "igst_amount": { "type": "number" }
+      }
+    },
+    "Round off": { "type": "number" },
+    "Packaging & Forwarding Extra": { "type": "number" },
+    "Loading Charges": { "type": "number" },
+    "Insurance": { "type": "number" },
+    "total_amount": { "type": "number" },
+    "Net GRN Amount": { "type": "number" },
+    "narration": { "type": "string" }
+  }
+}

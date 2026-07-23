@@ -1,0 +1,31 @@
+<div class="card">
+  <h2>Users</h2>
+  <p class="muted">Create accounts for your team. Everyone can upload, pair a
+  connector, resolve ledgers and push to Tally; only admins see this page.</p>
+  <div class="row mb">
+    <div class="field" style="width:200px"><label>Name</label><input id="adm-user-name" type="text" placeholder="Optional"></div>
+    <div class="field" style="width:240px"><label>Email</label><input id="adm-user-email" type="email"></div>
+    <div class="field" style="width:200px"><label>Password</label>
+      <div class="pw-wrap">
+        <input id="adm-user-password" type="password">
+        <button type="button" class="pw-toggle" id="adm-user-pw-toggle" aria-label="Show password">Show</button>
+      </div>
+    </div>
+    <div class="field" style="width:140px">
+      <label>Role</label>
+      <select id="adm-user-role"><option value="operator">Operator</option><option value="admin">Admin</option></select>
+    </div>
+    <div class="field" style="align-self:flex-end">
+      <button id="adm-user-create" class="btn btn-primary">Create user</button>
+    </div>
+  </div>
+  <p class="muted" style="margin-top:-4px">Passwords are stored encrypted and
+  cannot be shown. Use Reset in the Password column to set a new one - it is
+  visible while you type.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Password</th><th>Created</th><th></th></tr></thead>
+      <tbody id="adm-users"><tr><td colspan="6"><div class="empty"><span class="spinner"></span> Loading...</div></td></tr></tbody>
+    </table>
+  </div>
+</div>
