@@ -409,6 +409,7 @@
       const s = await window.ABSApi.get("/connector/status");
       const dot = document.getElementById("conn-dot");
       const text = document.getElementById("conn-text");
+      if (!dot || !text) return;
       dot.className = "conn-dot " + (s.online ? "online" : "offline");
       if (s.online) {
         text.textContent = "Connector online";
