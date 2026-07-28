@@ -81,6 +81,7 @@
     // any year that was linked to - a linked year missing from the list would
     // silently snap to "All years" and disagree with the rows on screen.
     function refreshYearOptions() {
+      if (!yearSelect) return;
       const years = {};
       vouchers.forEach((v) => {
         const y = (v.pushed_at || "").slice(0, 4);
@@ -158,7 +159,8 @@
           '<div class="empty-title">No company selected</div>' +
           "Select a company from the top-right to see its pushed vouchers." +
           "</div></td></tr>";
-        document.getElementById("hist-count").textContent = "";
+        const countEl = document.getElementById("hist-count");
+        if (countEl) countEl.textContent = "";
         clearAllBtn.disabled = true;
         return;
       }
@@ -201,8 +203,11 @@
         tbody.appendChild(tr);
       });
 
-      document.getElementById("hist-count").textContent =
-        vouchers.length ? list.length + " of " + vouchers.length + " pushed vouchers" : "";
+      const countEl = document.getElementById("hist-count");
+      if (countEl) {
+        countEl.textContent =
+          vouchers.length ? list.length + " of " + vouchers.length + " pushed vouchers" : "";
+      }
       clearAllBtn.disabled = !list.length;
       if (!list.length) {
         const period = periodLabel();
