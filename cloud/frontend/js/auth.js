@@ -85,10 +85,14 @@
     await loadDash();
 
     async function loadDash() {
+      if (!document.body.contains(tbody)) return;
       const company = window.ABSShell.company();
-      document.getElementById("dash-company").textContent = company
-        ? company.tally_name + (company.education_mode ? " (education mode on)" : "")
-        : "No company selected yet. Pick one from the dropdown at the top right.";
+      const companyEl = document.getElementById("dash-company");
+      if (companyEl) {
+        companyEl.textContent = company
+          ? company.tally_name + (company.education_mode ? " (education mode on)" : "")
+          : "No company selected yet. Pick one from the dropdown at the top right.";
+      }
 
       const statIds = ["stat-drafts", "stat-pushed-month", "stat-pushed-total", "stat-failed"];
       const companyId = window.ABSShell.companyId();
@@ -98,8 +102,9 @@
         // have, these elements are gone and writing .textContent would throw
         // "Cannot set properties of null". Bail instead.
         if (!document.body.contains(tbody)) return;
-        if (status) {
-          document.getElementById("dash-connector").textContent = status.online
+        const connEl = document.getElementById("dash-connector");
+        if (status && connEl) {
+          connEl.textContent = status.online
             ? "Desktop connector is online."
             : (status.total === 0
               ? "No desktop connector paired yet. Use \"Pairing code\" in the sidebar."
@@ -107,7 +112,10 @@
         }
 
         if (!companyId) {
-          statIds.forEach((id) => { document.getElementById(id).textContent = "-"; });
+          statIds.forEach((id) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = "-";
+          });
           tbody.innerHTML = '<tr><td colspan="5"><div class="empty">' +
             '<div class="empty-title">No company selected</div>' +
             "Select a company from the top-right to see its activity.</div></td></tr>";
@@ -122,10 +130,11 @@
           window.ABSApi.get("/vouchers?company_id=" + companyId),
         ]);
         if (!document.body.contains(tbody)) return;  // navigated away mid-load
-        document.getElementById("stat-drafts").textContent = stats.open;
-        document.getElementById("stat-failed").textContent = stats.failed;
-        document.getElementById("stat-pushed-month").textContent = stats.pushed_month;
-        document.getElementById("stat-pushed-total").textContent = stats.pushed_total;
+        const setText = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+        setText("stat-drafts", stats.open);
+        setText("stat-failed", stats.failed);
+        setText("stat-pushed-month", stats.pushed_month);
+        setText("stat-pushed-total", stats.pushed_total);
         // Send the month tile to History filtered to the same month the count
         // used. History filters year and month separately, so split "2026-07".
         const monthLink = document.getElementById("stat-month-link");
