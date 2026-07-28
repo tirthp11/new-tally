@@ -1,4 +1,4 @@
-﻿/* Tiny vanilla-JS router. Intercepts nav clicks, updates the URL with the
+/* Tiny vanilla-JS router. Intercepts nav clicks, updates the URL with the
    History API, fetches the matching fragment from /views, swaps it into
    <main>, and runs that view's script. Moving between screens never reloads
    the whole site. The login route renders with no chrome at all. */
@@ -22,8 +22,10 @@
   ];
 
   const main = document.getElementById("main");
+  let activeNavSeq = 0;
 
   async function render(pathWithQuery) {
+    const currentSeq = ++activeNavSeq;
     const path = pathWithQuery.split("?")[0];
     let route = ROUTES.find((r) => r.pattern.test(path));
     if (!route) route = ROUTES[1]; // dashboard
@@ -43,6 +45,7 @@
     if (window.ABSAuth.isLoggedIn() && !render._roleSynced) {
       render._roleSynced = true;
       try { await window.ABSAuth.syncRole(); } catch (ex) { /* keep cached role */ }
+      if (currentSeq !== activeNavSeq) return;
     }
     if (route.admin && window.ABSAuth.role() !== "admin") {
       // Silent redirect: operators never have an Admin link, and the API
@@ -54,7 +57,10 @@
     refreshChrome(route);
 
     const res = await fetch("/views/" + route.view + ".html?v=" + APP_VERSION);
-    main.innerHTML = await res.text();
+    const htmlText = await res.text();
+    if (currentSeq !== activeNavSeq) return;
+
+    main.innerHTML = htmlText;
 
     document.querySelectorAll(".sidebar-nav a").forEach((a) => {
       const href = a.getAttribute("href");
@@ -63,7 +69,13 @@
 
     const init = window.ABSViews && window.ABSViews[route.init];
     if (typeof init === "function") {
-      try { await init(); } catch (ex) { window.ABSToast(ex.message, true); }
+      try {
+        await init();
+      } catch (ex) {
+        if (currentSeq === activeNavSeq) {
+          window.ABSToast(ex.message, true);
+        }
+      }
     }
   }
 
