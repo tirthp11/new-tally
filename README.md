@@ -23,7 +23,7 @@ Invoice-to-Tally automation for Asia Bulk Sacks Pvt Ltd.
    uvicorn app.main:app --reload
    ```
 
-4. Open http://localhost:8000 - the backend serves the frontend directly.
+4. Open the backend serves the frontend directly.
 5. Run the connector on the machine that has Tally:
 
    ```
