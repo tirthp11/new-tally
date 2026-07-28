@@ -41,6 +41,7 @@
     async function loadUsers() {
       const users = await window.ABSApi.get("/admin/users");
       const tbody = document.getElementById("adm-users");
+      if (!tbody) return;
       tbody.innerHTML = "";
       users.forEach((u) => {
         const tr = document.createElement("tr");
