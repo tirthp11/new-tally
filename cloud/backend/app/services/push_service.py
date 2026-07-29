@@ -1,15 +1,14 @@
 """The "Push to Tally" orchestration (docs/06-WEB-APP.md section 3,
 revised by docs/09-UI-UX-OVERHAUL.md section 6).
 
-Sequence: date handling per education mode -> filter masters the user chose to
-create against the local cache (skip any that already exist) -> build missing
-masters from the user's create-new choices -> generate and validate XML ->
-re-filter inside the post_lock (catches masters a concurrent push just created)
--> queue connector jobs -> read Tally's response -> eagerly update the masters
-cache -> update status and audit.
+Sequence: date handling per education mode -> create-only pre-check against
+the masters cache -> build missing masters from the user's create-new choices
+-> generate and validate XML -> queue connector jobs -> read Tally's response
+-> update status and audit.
 
 There is NO self-heal retry: the first failure stops the push and the reason
-is stored on the voucher for the UI.
+is stored on the voucher for the UI. Existing masters are never altered -
+an attempted alter is a hard failure.
 
 All AI calls run in a worker thread so the event loop stays responsive.
 """
@@ -204,13 +203,12 @@ async def push_voucher(
     missing = resolver.build_missing_masters(resolution)
     has_missing = bool(missing["ledgers"] or missing["stock_items"] or missing["units"])
 
-    # 2a. Filter out masters the user marked "create new" but which already
-    # exist in the cache (e.g. created by a previous voucher push in this
-    # session).  Instead of hard-failing, silently skip them - the master is
-    # already in Tally so there is nothing to create.
+    # 2a. Create-only pre-check: a "create new" name that already exists in
+    # Tally's cached masters would make Tally ALTER it - never allowed.
     if has_missing:
-        missing = _remove_already_existing(db, company.id, missing)
-        has_missing = bool(missing["ledgers"] or missing["stock_items"] or missing["units"])
+        duplicates = _find_existing_masters(db, company.id, missing)
+        if duplicates:
+            return _fail(db, voucher, actor_id, duplicates, [], stage="precheck")
 
     voucher.status = "queued"
     voucher.company_id = company.id
@@ -267,23 +265,6 @@ async def push_voucher(
     # at the same time can interleave between them. Held only around the connector
     # jobs, so the AI generation above stays parallel across vouchers.
     async with hub.post_lock(str(connector_id)):
-        # Re-filter inside the lock: another voucher that held the lock just
-        # before us may have created some of the same masters and updated the
-        # cache.  Drop those so we never send a redundant ACTION="Create".
-        if has_missing:
-            missing = _remove_already_existing(db, company.id, missing)
-            has_missing = bool(missing["ledgers"] or missing["stock_items"] or missing["units"])
-            if has_missing and masters_xml is not None:
-                # Rebuild masters XML with the now-reduced missing set.
-                try:
-                    masters_xml = await asyncio.to_thread(
-                        build_masters_xml, missing, company.tally_name, invoice,
-                    )
-                except ValueError as e:
-                    return _fail(db, voucher, actor_id, [str(e)], errors_log, stage="masters")
-            elif not has_missing:
-                masters_xml = None
-
         # 3-5. Masters first, if anything to create. Any failure stops the push -
         # the voucher is never attempted on top of broken masters.
         if masters_xml is not None:
@@ -298,15 +279,12 @@ async def push_voucher(
             if not m_ok:
                 return _fail(db, voucher, actor_id, m_errs, errors_log, stage="masters")
             if m_info.get("altered", 0) > 0:
-                log.warning(
-                    "Masters push for voucher %s altered %d existing master(s) - "
-                    "likely shared with a concurrent voucher push. Proceeding.",
-                    voucher.id, m_info["altered"],
-                )
-            # Eagerly update the local cache so the NEXT voucher push (which
-            # will re-check inside its own post_lock) sees these masters as
-            # existing and skips them.
-            _update_cache_after_creation(db, company.id, missing)
+                return _fail(db, voucher, actor_id, [
+                    "Tally reports an existing ledger was altered "
+                    f"(Altered={m_info['altered']}). Updating ledgers is not allowed "
+                    "from this app. Choose the existing master from the dropdown "
+                    "instead of creating a new one.",
+                ], errors_log, stage="masters")
 
         # 6. Voucher import.
         ok, data = await run_job(
@@ -347,13 +325,9 @@ async def push_voucher(
     return {"ok": True, "tally_voucher_number": voucher.tally_voucher_number}
 
 
-def _remove_already_existing(db: Session, company_id: uuid.UUID, missing: dict) -> dict:
-    """Remove from *missing* any masters that already exist in the local cache.
-
-    Returns the (mutated) missing dict - it may now be empty.  This replaces
-    the old _find_existing_masters() which hard-failed on duplicates; instead
-    we silently skip them because they were most likely created by a previous
-    voucher push in the same session."""
+def _find_existing_masters(db: Session, company_id: uuid.UUID, missing: dict) -> list[str]:
+    """Names the user chose to CREATE that already exist in the cached Tally
+    masters. Any hit blocks the push before anything is sent to Tally."""
     cached = db.execute(
         select(MastersCache.kind, MastersCache.name)
         .where(MastersCache.company_id == company_id)
@@ -362,58 +336,29 @@ def _remove_already_existing(db: Session, company_id: uuid.UUID, missing: dict) 
     for kind, name in cached:
         by_kind.setdefault(kind, set()).add((name or "").strip().upper())
 
-    def not_exists(kind: str, entry: dict) -> bool:
-        return (entry.get("name") or "").strip().upper() not in by_kind.get(kind, set())
+    def exists(kind: str, name: str) -> bool:
+        return (name or "").strip().upper() in by_kind.get(kind, set())
 
-    removed = []
-    orig_ledgers = missing["ledgers"]
-    missing["ledgers"] = [l for l in orig_ledgers if not_exists("ledger", l)]
-    removed += [l["name"] for l in orig_ledgers if l not in missing["ledgers"]]
-
-    orig_stock = missing["stock_items"]
-    missing["stock_items"] = [s for s in orig_stock if not_exists("stock", s)]
-    removed += [s["name"] for s in orig_stock if s not in missing["stock_items"]]
-
-    orig_units = missing["units"]
-    missing["units"] = [u for u in orig_units if not_exists("unit", u)]
-    removed += [u["name"] for u in orig_units if u not in missing["units"]]
-
-    if removed:
-        log.info("Skipped already-existing masters (company %s): %s", company_id, removed)
-    return missing
-
-
-def _update_cache_after_creation(db: Session, company_id: uuid.UUID, missing: dict) -> None:
-    """Insert newly-created masters into the local cache so subsequent
-    voucher pushes see them as 'existing' and don't try to re-create."""
-    count = 0
-    for led in missing.get("ledgers", []):
-        name = (led.get("name") or "").strip()
-        if name:
-            db.add(MastersCache(
-                company_id=company_id, kind="ledger",
-                name=name, parent=led.get("parent") or led.get("group"),
-            ))
-            count += 1
-    for si in missing.get("stock_items", []):
-        name = (si.get("name") or "").strip()
-        if name:
-            db.add(MastersCache(
-                company_id=company_id, kind="stock",
-                name=name, parent=si.get("unit"),
-            ))
-            count += 1
-    for unit in missing.get("units", []):
-        name = (unit.get("name") or "").strip()
-        if name:
-            db.add(MastersCache(
-                company_id=company_id, kind="unit",
-                name=name,
-            ))
-            count += 1
-    db.commit()
-    if count:
-        log.info("Masters cache updated with %d new entries for company %s", count, company_id)
+    problems: list[str] = []
+    for led in missing["ledgers"]:
+        if exists("ledger", led["name"]):
+            problems.append(
+                f"Ledger '{led['name']}' already exists in Tally. You cannot "
+                "update a ledger - choose the existing one from the dropdown instead."
+            )
+    for si in missing["stock_items"]:
+        if exists("stock", si["name"]):
+            problems.append(
+                f"Stock item '{si['name']}' already exists in Tally. Choose the "
+                "existing one from the dropdown instead."
+            )
+    for unit in missing["units"]:
+        if exists("unit", unit["name"]):
+            problems.append(
+                f"Unit '{unit['name']}' already exists in Tally. Choose the "
+                "existing one from the dropdown instead."
+            )
+    return problems
 
 
 def _fail(db: Session, voucher: Voucher, actor_id: uuid.UUID,
