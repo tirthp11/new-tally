@@ -280,7 +280,6 @@ async def connector_ws(websocket: WebSocket):
                     fresh.status = "offline"
                     db.commit()
             finally:
-                db.expire_all()
                 db.close()
 
 
@@ -296,7 +295,6 @@ async def _post_connect(connector_id: uuid.UUID) -> None:
     except Exception:
         log.exception("Post-connect delivery failed for connector %s", connector_id)
     finally:
-        db.expire_all()
         db.close()
 
 
@@ -314,7 +312,6 @@ async def _sync_and_reply(connector_id: uuid.UUID, websocket: WebSocket) -> None
     except Exception:
         log.exception("sync_now failed for connector %s", connector_id)
     finally:
-        db.expire_all()
         db.close()
 
 
@@ -334,7 +331,6 @@ async def _sync_company_and_reply(
     except Exception:
         log.exception("sync_company failed for connector %s", connector_id)
     finally:
-        db.expire_all()
         db.close()
 
 
@@ -347,7 +343,6 @@ def _touch(connector_id: uuid.UUID) -> None:
             connector.status = "online"
             db.commit()
     finally:
-        db.expire_all()
         db.close()
 
 
@@ -370,5 +365,4 @@ def _persist_orphan_result(message: dict) -> None:
     except Exception:
         log.exception("Failed to persist orphan job result %s", job_id)
     finally:
-        db.expire_all()
         db.close()
