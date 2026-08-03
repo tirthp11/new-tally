@@ -41,4 +41,5 @@ def get_db() -> Generator[Session, None, None]:
     try:
         yield db
     finally:
+        db.expire_all()
         db.close()
