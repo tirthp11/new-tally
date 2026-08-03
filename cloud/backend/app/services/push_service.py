@@ -423,4 +423,6 @@ def _fail(db: Session, voucher: Voucher, actor_id: uuid.UUID,
     db.commit()
     write_audit(db, actor_id, "voucher.push_failed", "voucher", voucher.id,
                 {"stage": stage, "errors": errors})
-    return {"ok": False, "stage": stage, "errors": errors}
+    res = {"ok": False, "stage": stage, "errors": errors}
+    db.expire_all()
+    return res
